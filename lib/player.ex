@@ -1,4 +1,4 @@
-defmodule Player do
+defmodule Dungeon.Player do
   use GenServer
 
   defmodule PlayerStats do
@@ -14,14 +14,19 @@ defmodule Player do
   end
 
   def attacked(name \\__MODULE__, damage \\ 1) do
-    GenServer.cast(__MODULE__, {:attacked, damage})
+    GenServer.cast(name, {:attacked, damage})
   end
 
   def attack(name \\__MODULE__, module, damage \\1) do
-    GenServer.cast(module, {:attacked, damage, name})
+    if Dungeon.Monster.alive?(module) do
+      GenServer.cast(module, {:attacked, damage, name})
+    else
+      IO.puts "#{module} is already dead"
+    end
+
   end
 
-  def receive_xp(name \\__MODULE__, xp) do
+  def receive_xp( xp) do
     GenServer.cast(__MODULE__, {:receive_xp, xp} )
   end
 
@@ -42,7 +47,7 @@ defmodule Player do
   def handle_call(:xp, _from, player) do
     xp = player.xp
     {:reply, xp, player}
-  end 
+  end
 
   def handle_cast({:attacked, damage}, player) do
     updated_player = Map.put(player, :hp, player.hp - damage)
